@@ -56,7 +56,7 @@ LDFLAGS="-mthumb -mthumb-interwork -specs=gba.specs -L$DEVKITPRO/libtonc/lib -lt
 
 # Source files by component
 CORE_FILES="$CORE_DIR/main.c"
-MENU_FILES="$MENU_DIR/menu_system.c"
+MENU_FILES="$MENU_DIR/menu_system.c $MENU_DIR/menu_definitions.c"
 QR_FILES="$QR_DIR/qr_system.c $QR_DIR/qr_rendering.c $QR_DIR/qr_encoder.c $QR_DIR/reed_solomon.c"
 WALLET_FILES="$WALLET_DIR/wallet_system.c $WALLET_DIR/wallet_menu.c $WALLET_DIR/wallet_menu_ext.c $WALLET_DIR/crypto_types.c"
 PROTECTION_FILES="$PROTECTION_DIR/qr_protection.c $PROTECTION_DIR/qr_protection_menu.c $PROTECTION_DIR/qr_protection_integration.c"
