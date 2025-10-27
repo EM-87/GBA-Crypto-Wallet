@@ -8,8 +8,6 @@
  */
 
 #include "qr_system.h"
-#include "qr_encoder.h"
-#include "qr_rendering.h"
 
 // Global QR system state
 QrSystemState g_qr_state = {

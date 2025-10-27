@@ -18,7 +18,8 @@
  #include "qr_debug.h"
  #include "qr_system.h"
  #include "crypto_types.h"
- 
+ #include "qr_protection_menu.h"
+
  // =====================================================================
  // GLOBAL VARIABLES
  // =====================================================================
