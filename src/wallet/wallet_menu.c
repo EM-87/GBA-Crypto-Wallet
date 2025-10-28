@@ -18,7 +18,8 @@
  #include "qr_debug.h"
  #include "qr_system.h"
  #include "crypto_types.h"
- 
+ #include "qr_protection_menu.h"
+
  // =====================================================================
  // GLOBAL VARIABLES
  // =====================================================================
@@ -149,14 +150,14 @@
  void draw_simple_frame(int x, int y, int width, int height, u16 color) {
      // Horizontal lines
      for (int i = x; i < x + width; i++) {
-         tte_plot(i, y, color);
-         tte_plot(i, y + height - 1, color);
+         m3_plot(i, y, color);
+         m3_plot(i, y + height - 1, color);
      }
-     
+
      // Vertical lines
      for (int i = y; i < y + height; i++) {
-         tte_plot(x, i, color);
-         tte_plot(x + width - 1, i, color);
+         m3_plot(x, i, color);
+         m3_plot(x + width - 1, i, color);
      }
  }
  
@@ -551,10 +552,10 @@
      if (key_hit(KEY_A)) {
          // Show QR
          wallet_action_show_qr(NULL);
-     } else if (key_hit(KEY_Y)) {
+     } else if (key_hit(KEY_L)) {
          // Edit wallet
          wallet_action_edit_wallet(NULL);
-     } else if (key_hit(KEY_X)) {
+     } else if (key_hit(KEY_R)) {
          // Delete wallet
          wallet_action_delete_wallet(NULL);
      }
@@ -787,7 +788,7 @@
      }
      
      // Access crypto types management
-     if (key_hit(KEY_Y)) {
+     if (key_hit(KEY_L)) {
          wallet_action_view_crypto_types(NULL);
      }
      
@@ -811,7 +812,7 @@
      
      // Draw separator
      for (int i = 0; i < SCREEN_WIDTH; i++) {
-         tte_plot(i, 20, RGB15(15,15,15));
+         m3_plot(i, 20, RGB15(15,15,15));
      }
      
      // Filter information
@@ -926,7 +927,7 @@
      
      // Draw separator
      for (int i = 0; i < SCREEN_WIDTH; i++) {
-         tte_plot(i, 20, RGB15(15,15,15));
+         m3_plot(i, 20, RGB15(15,15,15));
      }
      
      // Get crypto type info
@@ -1020,7 +1021,7 @@
      
      // Draw separator
      for (int i = 0; i < SCREEN_WIDTH; i++) {
-         tte_plot(i, 20, RGB15(15,15,15));
+         m3_plot(i, 20, RGB15(15,15,15));
      }
      
      // Display wallet name and crypto
@@ -1074,7 +1075,7 @@
      
      // Draw separator
      for (int i = 0; i < SCREEN_WIDTH; i++) {
-         tte_plot(i, 20, RGB15(15,15,15));
+         m3_plot(i, 20, RGB15(15,15,15));
      }
      
      // Display fields
@@ -1147,7 +1148,7 @@
          if (blink < 15) {
              int cursor_x = 15 + g_text_input_cursor * 6;
              for (int i = 0; i < 8; i++) {
-                 tte_plot(cursor_x, 135 + i, RGB15(31,31,31));
+                 m3_plot(cursor_x, 135 + i, RGB15(31,31,31));
              }
          }
          
@@ -1173,7 +1174,7 @@
      
      // Draw separator
      for (int i = 0; i < SCREEN_WIDTH; i++) {
-         tte_plot(i, 20, RGB15(15,15,15));
+         m3_plot(i, 20, RGB15(15,15,15));
      }
      
      // Options
@@ -1228,7 +1229,7 @@
      
      // Draw separator
      for (int i = 0; i < SCREEN_WIDTH; i++) {
-         tte_plot(i, 20, RGB15(15,15,15));
+         m3_plot(i, 20, RGB15(15,15,15));
      }
      
      // Options

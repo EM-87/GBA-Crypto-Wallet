@@ -69,11 +69,23 @@
      u32 frame_counter;        // Global frame counter
      int auto_hide_timeout;    // Auto-hide timeout in frames
  } QrSystemState;
- 
+
+ /**
+  * QR rendering parameters
+  * Defines custom parameters for QR code rendering
+  */
+ typedef struct {
+     int x;                      // X position on screen
+     int y;                      // Y position on screen
+     int scale;                  // Scale factor
+     bool show_border;           // Whether to show border
+     int border_size;            // Border size in pixels
+ } QrRenderParams;
+
  /**
   * QR code generation and management functions
   */
- 
+
  /**
   * Initialize a QR state
   * @param qr_state QR code state to initialize

@@ -22,9 +22,9 @@
  #include "wallet_menu_ext.h"
  #include "qr_protection.h"
  
- // Global QR system state
- QrSystemState g_qr_state;
- 
+ // Global QR system state (defined in qr_system.c)
+ extern QrSystemState g_qr_state;
+
  // Buffer for OAM (Object Attribute Memory)
  OBJ_ATTR obj_buffer[128];
  
@@ -179,7 +179,7 @@
      }
      
      // Reset system
-     RegisterRamReset(RESET_ALL);
+     RegisterRamReset(0xFF);
      
      // If reset fails, just loop
      while(1) {

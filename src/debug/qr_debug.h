@@ -48,7 +48,8 @@
  #define MODULE_TEST      5  // Tests
  #define MODULE_POWER     6  // Power management
  #define MODULE_MENU      7  // Menu system
- 
+ #define MODULE_QR        8  // QR generation
+
  /**
   * Enable on-screen log display
   * Comment out to disable debug overlay

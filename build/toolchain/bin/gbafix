@@ -1,0 +1,39 @@
+#!/bin/bash
+# gbafix wrapper for Linux x86_64
+# Downloads and caches the official gbafix tool from devkitPro
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GBAFIX_REAL="$SCRIPT_DIR/.gbafix-real"
+GBAFIX_URL="https://github.com/devkitPro/gba-tools/releases/download/v1.2.0/gba-tools-1.2.0-linux.tar.bz2"
+
+# Download gbafix if not already cached
+if [ ! -f "$GBAFIX_REAL" ]; then
+    echo "Downloading gbafix tool (first time only)..." >&2
+
+    # Create temp directory
+    TEMP_DIR=$(mktemp -d)
+
+    # Download and extract
+    if curl -L "$GBAFIX_URL" 2>/dev/null | tar -xj -C "$TEMP_DIR" 2>/dev/null; then
+        # Find and copy gbafix binary
+        if [ -f "$TEMP_DIR/bin/gbafix" ]; then
+            cp "$TEMP_DIR/bin/gbafix" "$GBAFIX_REAL"
+            chmod +x "$GBAFIX_REAL"
+            echo "gbafix downloaded successfully!" >&2
+        else
+            echo "ERROR: gbafix binary not found in downloaded archive" >&2
+            rm -rf "$TEMP_DIR"
+            exit 1
+        fi
+    else
+        echo "ERROR: Failed to download gbafix" >&2
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
+
+    # Cleanup
+    rm -rf "$TEMP_DIR"
+fi
+
+# Run the real gbafix
+exec "$GBAFIX_REAL" "$@"

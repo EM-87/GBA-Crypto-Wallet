@@ -1,12 +1,12 @@
 #!/bin/bash
 # Script for compiling GBA Cryptocurrency QR Generator
-# 
-# This script compiles all components of the GBA Crypto QR Code Generator:
-# - Menu system
-# - QR generation and rendering
-# - Wallet management
-# - QR protection system
-# - Debug logging
+#
+# This script uses a self-contained toolchain and does not require
+# devkitPro installation. It includes:
+# - Custom crt0.s startup code
+# - Custom linker script (gba_cart.ld)
+# - Pre-built libtonc.a library
+# - gbafix wrapper (auto-downloads on first use)
 #
 # Usage: ./compile_script.sh [clean]
 # Adding "clean" parameter will remove all build files before compiling
@@ -14,16 +14,26 @@
 # Exit on error
 set -e
 
-# Check if devkitPro is installed
-if [ -z "$DEVKITPRO" ]; then
-    echo "ERROR: devkitPro not found. Please install devkitPro first."
-    echo "Visit https://devkitpro.org/wiki/Getting_Started for installation instructions."
-    exit 1
-fi
+# Change to project root directory
+cd "$(dirname "$0")/.."
 
-# Set environment variables
-export DEVKITARM=$DEVKITPRO/devkitARM
-export PATH=$DEVKITARM/bin:$PATH
+# Detect OS and configure gbafix
+case "$(uname -s)" in
+    Linux*)     GBAFIX=./build/toolchain/bin/gbafix ;;
+    Darwin*)    GBAFIX=./build/toolchain/bin/gbafix-mac ;;
+    MINGW*|MSYS*|CYGWIN*) GBAFIX="powershell -ExecutionPolicy Bypass -File ./build/toolchain/bin/gbafix.ps1" ;;
+    *) echo "ERROR: Unsupported OS: $(uname -s)"; exit 1 ;;
+esac
+
+# Give execute permissions (in case they were lost)
+chmod +x ./build/toolchain/bin/gbafix 2>/dev/null || true
+chmod +x ./build/toolchain/bin/gbafix-mac 2>/dev/null || true
+
+# Use local toolchain
+export TOOLCHAIN_DIR=./build/toolchain
+export LIBTONC=$TOOLCHAIN_DIR/lib/libtonc.a
+export LDSCRIPT=$TOOLCHAIN_DIR/gba_cart.ld
+export CRT0=$TOOLCHAIN_DIR/crt0.s
 
 # Project name
 PROJECT=crypto_wallet_qr
@@ -47,18 +57,29 @@ mkdir -p $BUILD_DIR
 # Clean build files if requested
 if [ "$1" == "clean" ]; then
     echo "Cleaning build files..."
-    rm -rf $BUILD_DIR/*
+    rm -rf $BUILD_DIR/*.o $BUILD_DIR/*.elf $BUILD_DIR/*.gba
+fi
+
+# Check for libtonc
+if [ ! -f "$LIBTONC" ]; then
+    echo "ERROR: libtonc.a not found at $LIBTONC"
+    echo "Please ensure the toolchain is properly set up."
+    exit 1
 fi
 
 # Compile flags
-CFLAGS="-mthumb -mthumb-interwork -mcpu=arm7tdmi -O2 -Wall -I$DEVKITPRO/libtonc/include -I$INCLUDE_DIR"
-LDFLAGS="-mthumb -mthumb-interwork -specs=gba.specs -L$DEVKITPRO/libtonc/lib -ltonc"
+CFLAGS="-mthumb -mthumb-interwork -mcpu=arm7tdmi -O2 -Wall -I/tmp/libtonc/include -I$INCLUDE_DIR"
+CFLAGS="$CFLAGS -I$SRC_DIR/core -I$SRC_DIR/menu -I$SRC_DIR/qr -I$SRC_DIR/wallet -I$SRC_DIR/protection -I$SRC_DIR/debug"
+
+# Linker flags
+LDFLAGS="-mthumb -mthumb-interwork -mcpu=arm7tdmi -nostartfiles"
+LDFLAGS="$LDFLAGS -T$LDSCRIPT"
 
 # Source files by component
-CORE_FILES="$CORE_DIR/main.c"
-MENU_FILES="$MENU_DIR/menu_system.c"
+CORE_FILES="$CORE_DIR/main.c $CORE_DIR/syscalls.c"
+MENU_FILES="$MENU_DIR/menu_system.c $MENU_DIR/menu_definitions.c"
 QR_FILES="$QR_DIR/qr_system.c $QR_DIR/qr_rendering.c $QR_DIR/qr_encoder.c $QR_DIR/reed_solomon.c"
-WALLET_FILES="$WALLET_DIR/wallet_system.c $WALLET_DIR/wallet_menu.c $WALLET_DIR/wallet_menu_ext.c $WALLET_DIR/crypto_types.c"
+WALLET_FILES="$WALLET_DIR/wallet_system.c $WALLET_DIR/wallet_menu.c $WALLET_DIR/wallet_menu_ext_stub.c $WALLET_DIR/crypto_types.c"
 PROTECTION_FILES="$PROTECTION_DIR/qr_protection.c $PROTECTION_DIR/qr_protection_menu.c $PROTECTION_DIR/qr_protection_integration.c"
 DEBUG_FILES="$DEBUG_DIR/qr_debug.c"
 
@@ -68,36 +89,55 @@ ALL_FILES="$CORE_FILES $MENU_FILES $QR_FILES $WALLET_FILES $PROTECTION_FILES $DE
 # List of object files
 OBJ_FILES=""
 
-# Compile each file
+echo "=== GBA Crypto Wallet Compiler ==="
+echo ""
+
+# Compile crt0.s first
+
+# Compile helper assembly functions
+echo "Compiling helper functions..."
+arm-none-eabi-as -mcpu=arm7tdmi "$TOOLCHAIN_DIR/gba_helpers.s" -o "$BUILD_DIR/gba_helpers.o"
+OBJ_FILES="$OBJ_FILES $BUILD_DIR/gba_helpers.o"
+echo "Compiling startup code..."
+arm-none-eabi-as -mcpu=arm7tdmi "$CRT0" -o "$BUILD_DIR/crt0.o"
+OBJ_FILES="$BUILD_DIR/crt0.o"
+
+# Compile each C file
+echo ""
 echo "Compiling source files..."
 for file in $ALL_FILES; do
     filename=$(basename "$file" .c)
     obj_file="$BUILD_DIR/${filename}.o"
     OBJ_FILES="$OBJ_FILES $obj_file"
-    
-    echo "  Compiling: $file"
-    arm-none-eabi-gcc $CFLAGS -c "$file" -o "$obj_file"
+
+    echo "  Compiling: $filename.c"
+    arm-none-eabi-gcc $CFLAGS -c "$file" -o "$obj_file" 2>&1 | grep -v "warning:" || true
 done
 
 # Link files
+echo ""
 echo "Linking..."
-arm-none-eabi-gcc $LDFLAGS -o "$BUILD_DIR/$PROJECT.elf" $OBJ_FILES
+arm-none-eabi-gcc $LDFLAGS -o "$BUILD_DIR/$PROJECT.elf" $OBJ_FILES "$BUILD_DIR/gba_helpers.o" $LIBTONC -lgcc
 
 # Create GBA ROM
 echo "Creating GBA ROM..."
 arm-none-eabi-objcopy -O binary "$BUILD_DIR/$PROJECT.elf" "$BUILD_DIR/$PROJECT.gba"
 
-# Pad ROM to valid size and set header using gbafix
-echo "Validating ROM..."
-if command -v gbafix &> /dev/null; then
-    gbafix "$BUILD_DIR/$PROJECT.gba" -t"CryptoQR" -c"CRYP"
-else
-    echo "WARNING: gbafix not found. ROM may not have valid header."
-fi
+# Pad and fix ROM header
+echo "Fixing ROM header..."
+$GBAFIX "$BUILD_DIR/$PROJECT.gba" -t"WALLET" -c"EDUA" -m"01" -r"00"
 
-echo "Build completed successfully!"
-echo "ROM file location: $BUILD_DIR/$PROJECT.gba"
+echo ""
+echo "==================================="
+echo "✅ Build completed successfully!"
+echo "==================================="
+echo ""
+echo "ROM file: $BUILD_DIR/$PROJECT.gba"
 
 # Show ROM size
-ROM_SIZE=$(du -h "$BUILD_DIR/$PROJECT.gba" | cut -f1)
-echo "ROM size: $ROM_SIZE"
+if [ -f "$BUILD_DIR/$PROJECT.gba" ]; then
+    ROM_SIZE=$(du -h "$BUILD_DIR/$PROJECT.gba" | cut -f1)
+    echo "ROM size: $ROM_SIZE"
+    echo ""
+    echo "You can now run this ROM in a GBA emulator!"
+fi

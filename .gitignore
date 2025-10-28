@@ -1,0 +1,9 @@
+
+# Toolchain binaries (auto-downloaded)
+build/toolchain/bin/.gbafix-real*
+build/toolchain/bin/*.exe.real
+
+# Build artifacts
+build/*.o
+build/*.elf
+build/*.gba

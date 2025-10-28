@@ -17,22 +17,12 @@
  
  #include "wallet_menu.h"
  #include "crypto_types.h"
- 
+
  /**
-  * Extended wallet screen states including QR protection
+  * Note: WalletScreenState is defined in wallet_menu.h
+  * This header extends the wallet menu with additional functionality
   */
- typedef enum {
-     WALLET_SCREEN_LIST = 0,         // List of wallets
-     WALLET_SCREEN_DETAILS,          // Wallet details view
-     WALLET_SCREEN_QR,               // QR code display
-     WALLET_SCREEN_EDIT,             // Edit wallet entry
-     WALLET_SCREEN_NEW,              // Create new wallet
-     WALLET_SCREEN_SETTINGS,         // Wallet settings
-     WALLET_SCREEN_FILTER,           // Filter wallet entries
-     WALLET_SCREEN_CRYPTO_TYPES,     // Crypto type management
-     WALLET_SCREEN_QR_PROTECTION     // QR protection settings
- } WalletScreenState;
- 
+
  /**
   * States for cryptocurrency type management screen
   */

@@ -16,8 +16,9 @@
 
  #include <string.h>
  #include "reed_solomon.h"
+ #include "qr_system.h"
  #include "qr_debug.h"
- 
+
  // Galois field arithmetic tables for GF(2^8)
  static u8 rs_exp_table[256];  // Exponentiation table (alpha^i)
  static u8 rs_log_table[256];  // Logarithm table (log_alpha(i))
