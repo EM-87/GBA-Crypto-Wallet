@@ -275,7 +275,7 @@
      }
      
      // Delete type
-     if (key_hit(KEY_X)) {
+     if (key_hit(KEY_R)) {
          wallet_action_delete_crypto_type(NULL);
      }
      
@@ -384,7 +384,7 @@
      }
      
      // Cancel editing
-     if (key_hit(KEY_X)) {
+     if (key_hit(KEY_R)) {
          g_crypto_type_screen_state = CRYPTO_TYPE_VIEW_LIST;
      }
  }

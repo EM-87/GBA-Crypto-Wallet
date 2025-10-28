@@ -290,13 +290,6 @@ bool wallet_generate_qr(int index) {
 }
 
 /**
- * Render current QR code to screen
- */
-bool wallet_render_current_qr(int x, int y, int scale) {
-    return render_qr_to_screen(&g_wallet_system.qr_state, x, y, scale);
-}
-
-/**
  * Get cryptocurrency name by type
  */
 const char* wallet_get_crypto_name(CryptoType type) {
