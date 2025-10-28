@@ -195,7 +195,11 @@
  void menu_action_exit(void* user_data);
  void menu_option_volume_changed(int new_value);
  void menu_option_fullscreen_changed(bool enabled);
- 
+
+ // QR menu functions
+ void qr_menu_update(void);
+ void qr_menu_render(void);
+
  // =====================================================================
  // EXTERNAL VARIABLES
  // =====================================================================
